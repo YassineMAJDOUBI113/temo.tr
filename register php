@@ -1,0 +1,462 @@
+<?php
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "test";
+
+// Connexion à la base de données MySQL
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Vérifier la connexion
+if ($conn->connect_error) {
+    die("Connexion échouée: " . $conn->connect_error);
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $user = $_POST['username'];
+    $email = $_POST['email'];
+    $dob = $_POST['dob'];
+    $pass = password_hash($_POST['password'], PASSWORD_DEFAULT);
+
+    $sql = "INSERT INTO users (username, email, dob, password) VALUES ('$user', '$email', '$dob', '$pass')";
+
+    if ($conn->query($sql) === TRUE) {
+        echo "Nouvel enregistrement créé avec succès";
+    } else {
+        echo "Erreur: " . $sql . "<br>" . $conn->error;
+    }
+
+    $conn->close();
+
+    // Vérifier si le nom d'utilisateur existe déjà
+    $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
+    $stmt->bind_param("s", $user);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        echo "Le nom d'utilisateur est déjà pris. Veuillez en choisir un autre.";
+    } else {
+        // Insérer les informations de l'utilisateur dans la base de données
+        $stmt = $conn->prepare("INSERT INTO users (username, email, dob, password) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("ssss", $user, $email, $dob, $pass);
+        if ($stmt->execute()) {
+            echo "Nouvel enregistrement créé avec succès";
+        } else {
+            echo "Erreur: " . $conn->error;
+        }
+    }
+CREATE DATABASE test;
+
+USE test;
+
+CREATE TABLE users (
+    id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(30) NOT NULL,
+    email VARCHAR(50) NOT NULL,
+    dob DATE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    reg_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+    $stmt->close();
+    $conn->close();
+}
+
+?>
+<?php
+session_start();
+
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "test";
+
+// Connexion à la base de données MySQL
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Vérifier la connexion
+if ($conn->connect_error) {
+    die("Connexion échouée: " . $conn->connect_error);
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $user = $_POST['username'];
+    $pass = $_POST['password'];
+
+    // Vérifier les informations d'identification
+    $stmt = $conn->prepare("SELECT id, password FROM users WHERE username = ?");
+    $stmt->bind_param("s", $user);
+    $stmt->execute();
+    $stmt->store_result();
+    $stmt->bind_result($id, $hashed_password);
+    $stmt->fetch();
+
+    if ($stmt->num_rows > 0 && password_verify($pass, $hashed_password)) {
+        // Les informations d'identification sont correctes
+        $_SESSION['user_id'] = $id;
+        $_SESSION['username'] = $user;
+        header("Location: dashboard.php");
+        exit;
+    } else {
+        // Les informations d'identification sont incorrectes
+        echo "Nom d'utilisateur ou mot de passe incorrect.";
+    }
+
+    $stmt->close();
+}
+
+$conn->close();
+?>
+<?php
+session_start();
+
+// Détruire toutes les variables de session
+$_SESSION = array();
+
+// Si vous souhaitez détruire la session complètement, y compris les cookies de session, décommentez la ligne suivante.
+if (ini_get("session.use_cookies")) {
+    $params = session_get_cookie_params();
+    setcookie(session_name(), '', time() - 42000,
+        $params["path"], $params["domain"],
+        $params["secure"], $params["httponly"]
+    );
+}
+
+// Finalement, détruire la session.
+session_destroy();
+
+// Rediriger l'utilisateur vers la page de connexion ou la page d'accueil
+header("Location: login.html");
+exit;
+?>
+<?php
+session_start();
+
+// Vérifier si l'utilisateur est connecté
+if (!isset($_SESSION['username'])) {
+    header("Location: login.html");
+    exit;
+}
+?>
+<?php
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "test";
+
+// Connexion à la base de données MySQL
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Vérifier la connexion
+if ($conn->connect_error) {
+    die("Connexion échouée: " . $conn->connect_error);
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $user = $_POST['username'];
+    $email = $_POST['email'];
+    $dob = $_POST['dob'];
+    $pass = password_hash($_POST['password'], PASSWORD_DEFAULT);
+
+    // Vérifier si le nom d'utilisateur existe déjà
+    $stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
+    $stmt->bind_param("s", $user);
+    $stmt->execute();
+    $stmt->store_result();
+
+    if ($stmt->num_rows > 0) {
+        echo "Le nom d'utilisateur est déjà pris. Veuillez en choisir un autre.";
+    } else {
+        // Insérer les informations de l'utilisateur dans la base de données
+        $stmt = $conn->prepare("INSERT INTO users (username, email, dob, password) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("ssss", $user, $email, $dob, $pass);
+        if ($stmt->execute()) {
+            echo "Nouvel enregistrement créé avec succès";
+        } else {
+            echo "Erreur: " . $conn->error;
+        }
+    }
+
+    $stmt->close();
+}
+
+$conn->close();
+?>
+<?php
+session_start();
+
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "test";
+
+// Connexion à la base de données MySQL
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Vérifier la connexion
+if ($conn->connect_error) {
+    die("Connexion échouée: " . $conn->connect_error);
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $user = $_POST['username'];
+    $pass = $_POST['password'];
+
+    // Vérifier les informations d'identification
+    $stmt = $conn->prepare("SELECT id, password FROM users WHERE username = ?");
+    $stmt->bind_param("s", $user);
+    $stmt->execute();
+    $stmt->store_result();
+    $stmt->bind_result($id, $hashed_password);
+    $stmt->fetch();
+
+    if ($stmt->num_rows > 0 && password_verify($pass, $hashed_password)) {
+        // Les informations d'identification sont correctes
+        $_SESSION['user_id'] = $id;
+        $_SESSION['username'] = $user;
+        header("Location: dashboard.php");
+        exit;
+    } else {
+        // Les informations d'identification sont incorrectes
+        echo "Nom d'utilisateur ou mot de passe incorrect.";
+    }
+
+    $stmt->close();
+}
+
+$conn->close();
+?>
+<?php
+session_start();
+
+// Vérifier si l'utilisateur est connecté
+if (!isset($_SESSION['username'])) {
+    header("Location: index.html");
+    exit;
+}
+?>
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de Bord</title>
+</head>
+<body>
+    <h2>Bienvenue, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h2>
+    <p>Vous êtes connecté.</p>
+    <form action="logout.php" method="post">
+        <input type="submit" value="Déconnexion">
+    </form>
+</body>
+</html>
+<?php
+session_start();
+
+// Détruire toutes les variables de session
+$_SESSION = array();
+
+// Si vous souhaitez détruire la session complètement, y compris les cookies de session, décommentez la ligne suivante.
+if (ini_get("session.use_cookies")) {
+    $params = session_get_cookie_params();
+    setcookie(session_name(), '', time() - 42000,
+        $params["path"], $params["domain"],
+        $params["secure"], $params["httponly"]
+    );
+}
+
+// Finalement, détruire la session.
+session_destroy();
+
+// Rediriger l'utilisateur vers la page de connexion ou la page d'accueil
+header("Location: index.html");
+exit;
+?>
+<?php
+// logout.php
+session_start();
+
+// Vérifier si une session existe
+if (isset($_SESSION['user_id'])) {
+    // Supprimer toutes les variables de session
+    session_unset();
+    // Détruire la session
+    session_destroy();
+    // Répondre au client
+    http_response_code(200);
+    echo "Déconnexion réussie.";
+} else {
+    // Pas de session active
+    http_response_code(400);
+    echo "Aucune session active.";
+}
+?>
+<?php
+// Ajouter un journal lors de la déconnexion
+include 'db_connection.php'; // Connexion à la base de données
+
+if (isset($_SESSION['user_id'])) {
+    $user_id = $_SESSION['user_id'];
+    $sql = "INSERT INTO log_activities (user_id, action) VALUES ('$user_id', 'logout')";
+    mysqli_query($conn, $sql);
+}
+?>
+
+<?php
+include 'db_connection.php';
+session_start();
+
+$data = json_decode(file_get_contents("php://input"), true);
+$sender_id = $_SESSION['user_id'];  // Utilisateur connecté
+$receiver_id = $data['receiver_id']; 
+$message = $data['message'];
+
+$query = "INSERT INTO messages (sender_id, receiver_id, content) VALUES ('$sender_id', '$receiver_id', '$message')";
+if (mysqli_query($conn, $query)) {
+    echo json_encode(["success" => true]);
+} else {
+    echo json_encode(["success" => false]);
+}
+?>
+
+<?php
+include 'db_connection.php';
+session_start();
+
+$sender_id = $_SESSION['user_id'];
+$receiver_id = $_GET['receiver_id'];
+
+$query = "SELECT * FROM messages WHERE (sender_id = '$sender_id' AND receiver_id = '$receiver_id') OR 
+        (sender_id = '$receiver_id' AND receiver_id = '$sender_id') ORDER BY created_at ASC";
+
+$result = mysqli_query($conn, $query);
+$messages = [];
+while ($row = mysqli_fetch_assoc($result)) {
+    $messages[] = [
+        "sender_id" => $row['sender_id'],
+        "receiver_id" => $row['receiver_id'],
+        "content" => $row['content'],
+        "timestamp" => $row['created_at']
+    ];
+}
+
+echo json_encode($messages);
+?>
+<?php
+$uploadDir = 'uploads/'; // Dossier où stocker les fichiers
+if (!is_dir($uploadDir)) {
+    mkdir($uploadDir, 0777, true); // Créer le dossier s'il n'existe pas
+}
+
+if (isset($_FILES['file'])) {
+    $fileName = basename($_FILES['file']['name']);
+    $filePath = $uploadDir . uniqid() . '_' . $fileName;
+
+    if (move_uploaded_file($_FILES['file']['tmp_name'], $filePath)) {
+        echo json_encode(['success' => true, 'file_path' => $filePath]);
+    } else {
+        echo json_encode(['success' => false]);
+    }
+} else {
+    echo json_encode(['success' => false]);
+}
+?>
+<?php
+include 'db_connection.php';
+session_start();
+
+$data = json_decode(file_get_contents("php://input"), true);
+$sender_id = $_SESSION['user_id'];
+$receiver_id = $data['receiver_id'];
+$message = $data['message'];
+$message_type = $data['message_type'] ?? 'text';
+
+$query = "INSERT INTO messages (sender_id, receiver_id, content, message_type) VALUES ('$sender_id', '$receiver_id', '$message', '$message_type')";
+if (mysqli_query($conn, $query)) {
+    echo json_encode(["success" => true]);
+} else {
+    echo json_encode(["success" => false]);
+}
+?>
+
+<?php
+include 'db_connection.php';
+session_start();
+
+$data = json_decode(file_get_contents("php://input"), true);
+$sender_id = $_SESSION['user_id']; // L'utilisateur connecté
+$receiver_id = $data['receiver_id']; 
+$message = $data['message'];
+$message_type = $data['message_type'] ?? 'text';
+
+$query = "INSERT INTO messages (sender_id, receiver_id, content, message_type, file_path) 
+        VALUES ('$sender_id', '$receiver_id', '$message', '$message_type', '$message')";
+
+if (mysqli_query($conn, $query)) {
+    echo json_encode(["success" => true]);
+} else {
+    echo json_encode(["success" => false, "error" => mysqli_error($conn)]);
+}
+$allowedTypes = ['image/jpeg', 'image/png', 'application/pdf', 'video/mp4', 'audio/mpeg'];
+if (!in_array($_FILES['file']['type'], $allowedTypes)) {
+    echo json_encode(['success' => false, 'message' => 'Type de fichier non autorisé.']);
+    exit;
+}
+$maxSize = 10 * 1024 * 1024 * 1024; // 10 Go
+if ($_FILES['file']['size'] > $maxSize) {
+    echo json_encode(['success' => false, 'message' => 'Fichier trop volumineux.']);
+    exit;
+}
+?>
+<?php
+$uploadDir = 'uploads/audios/'; // Dossier où stocker les audios
+if (!is_dir($uploadDir)) {
+    mkdir($uploadDir, 0777, true); // Créer le dossier s'il n'existe pas
+}
+
+if (isset($_FILES['file'])) {
+    $fileName = basename($_FILES['file']['name']);
+    $filePath = $uploadDir . uniqid() . '_' . $fileName;
+
+    if (move_uploaded_file($_FILES['file']['tmp_name'], $filePath)) {
+        echo json_encode(['success' => true, 'file_path' => $filePath]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Erreur lors du téléversement.']);
+    }
+} else {
+    echo json_encode(['success' => false, 'message' => 'Aucun fichier audio reçu.']);
+}
+?>
+
+<?php
+include 'db_connection.php';
+session_start();
+
+$data = json_decode(file_get_contents("php://input"), true);
+$sender_id = $_SESSION['user_id']; // L'utilisateur connecté
+$receiver_id = $data['receiver_id']; 
+$message = $data['message'];
+$message_type = $data['message_type'] ?? 'text';
+
+$query = "INSERT INTO messages (sender_id, receiver_id, content, message_type, file_path) 
+        VALUES ('$sender_id', '$receiver_id', '$message', '$message_type', '$message')";
+
+if (mysqli_query($conn, $query)) {
+    echo json_encode(["success" => true]);
+} else {
+    echo json_encode(["success" => false, "error" => mysqli_error($conn)]);
+}
+$allowedTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav'];
+if (!in_array($_FILES['file']['type'], $allowedTypes)) {
+    echo json_encode(['success' => false, 'message' => 'Type de fichier audio non autorisé.']);
+    exit;
+}
+$maxSize = 5 * 1024 * 1024; // 5 Mo
+if ($_FILES['file']['size'] > $maxSize) {
+    echo json_encode(['success' => false, 'message' => 'Fichier audio trop volumineux.']);
+    exit;
+}
+
+?>
+
